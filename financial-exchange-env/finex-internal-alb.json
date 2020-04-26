@@ -1,0 +1,60 @@
+{
+    "AWSTemplateFormatVersion" : "2010-09-09",
+    "Resources" : {
+        "InternalAlb" : {
+            "Type" : "AWS::ElasticLoadBalancingV2::LoadBalancer",
+            "Properties" : {
+                "IpAddressType" : "ipv4",
+                "Name" : "finex-internal-alb",
+                "Scheme" : "internal",
+                "SecurityGroups" : [{ 
+                    "Fn::ImportValue" :  {
+                        "Fn::Sub": "FinexAppSgId" 
+                    }
+                } ],
+                "Subnets" : [ { 
+                    "Fn::ImportValue" :  {
+                        "Fn::Sub": "FinexAppSubnetIdZone1" 
+                    }
+                }, { 
+                    "Fn::ImportValue" :  {
+                        "Fn::Sub": "FinexAppSubnetIdZone2" 
+                    }
+                } ],
+                "Type" : "application",
+                "Tags" : [
+                    {
+                        "Key" : "Name",
+                        "Value" : "finex-internal-alb"
+                    }, {
+                        "Key" : "Cloudformation",
+                        "Value" : "Yes"
+                    }
+                ]
+            }
+        }
+    },
+    "Outputs" : {
+        "InternalAlbDnsName" : {
+            "Description" : "DNS name of the internal ALB finex-internal-alb",
+            "Value" : {
+                "Fn::GetAtt" : [
+                    "InternalAlb",
+                    "DNSName"
+                ]
+            },
+            "Export" : {
+                "Name" : "FinexInternalAlbDnsName"
+            }    
+        },
+        "InternalAlbArn" : {
+            "Description" : "ARN of the internal ALB finex-internal-alb",
+            "Value" : {
+                "Ref" : "InternalAlb"
+            },
+            "Export" : {
+                "Name" : "FinexInternalAlbArn" 
+            }   
+        }
+    }
+}

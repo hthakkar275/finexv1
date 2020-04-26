@@ -1,0 +1,394 @@
+{
+    "AWSTemplateFormatVersion" : "2010-09-09",
+    "Resources" : {
+        "ExtInfoSvcTargetGrp" : {
+            "Type" : "AWS::ElasticLoadBalancingV2::TargetGroup",
+            "Properties" : {
+                "HealthCheckEnabled" : true,
+                "HealthCheckIntervalSeconds" : 30,
+                "HealthCheckPath" : "/index.html",
+                "HealthCheckPort" : "8080",
+                "HealthCheckProtocol" : "HTTP",
+                "HealthCheckTimeoutSeconds" : 5,
+                "HealthyThresholdCount" : 5,
+                "Matcher" : {
+                    "HttpCode" : "200"
+                },
+                "Name" : "ext-info-svc-grp",
+                "Port" : 8080,
+                "Protocol" : "HTTP",
+                "Tags" : [
+                    {
+                        "Key" : "Name",
+                        "Value" : "ext-info-svc-grp"
+                    }, {
+                        "Key" : "Cloudformation",
+                        "Value" : "Yes"
+                    }
+                ],
+                "Targets" : [ {
+                    "Id" : { 
+                        "Fn::ImportValue" :  {
+                            "Fn::Sub": "InfoSvcInstanceIdZone1" 
+                        } 
+                    },
+                    "Port" : 8080
+                } ],
+                "TargetType" : "instance",
+                "UnhealthyThresholdCount" : 2,
+                "VpcId" : { 
+                    "Fn::ImportValue" :  {
+                        "Fn::Sub": "FinexVpcId" 
+                    } 
+                }
+            }
+        },
+        "ExtProductSvcTargetGrp" : {
+            "Type" : "AWS::ElasticLoadBalancingV2::TargetGroup",
+            "Properties" : {
+                "HealthCheckEnabled" : true,
+                "HealthCheckIntervalSeconds" : 30,
+                "HealthCheckPath" : "/index.html",
+                "HealthCheckPort" : "8080",
+                "HealthCheckProtocol" : "HTTP",
+                "HealthCheckTimeoutSeconds" : 5,
+                "HealthyThresholdCount" : 5,
+                "Matcher" : {
+                    "HttpCode" : "200"
+                },
+                "Name" : "ext-product-svc-grp",
+                "Port" : 8080,
+                "Protocol" : "HTTP",
+                "Tags" : [
+                    {
+                        "Key" : "Name",
+                        "Value" : "ext-product-svc-grp"
+                    }, {
+                        "Key" : "Cloudformation",
+                        "Value" : "Yes"
+                    }
+                ],
+                "Targets" : [ {
+                    "Id" : { 
+                        "Fn::ImportValue" :  {
+                            "Fn::Sub": "ProductSvcInstanceIdZone1" 
+                        } 
+                    },
+                } ],
+                "TargetType" : "instance",
+                "UnhealthyThresholdCount" : 2,
+                "VpcId" : { 
+                    "Fn::ImportValue" :  {
+                        "Fn::Sub": "FinexVpcId" 
+                    } 
+                }
+            }
+        },
+        "ExtParticipantSvcTargetGrp" : {
+            "Type" : "AWS::ElasticLoadBalancingV2::TargetGroup",
+            "Properties" : {
+                "HealthCheckEnabled" : true,
+                "HealthCheckIntervalSeconds" : 30,
+                "HealthCheckPath" : "/index.html",
+                "HealthCheckPort" : "8080",
+                "HealthCheckProtocol" : "HTTP",
+                "HealthCheckTimeoutSeconds" : 5,
+                "HealthyThresholdCount" : 5,
+                "Matcher" : {
+                    "HttpCode" : "200"
+                },
+                "Name" : "ext-participant-svc-grp",
+                "Port" : 8080,
+                "Protocol" : "HTTP",
+                "Tags" : [
+                    {
+                        "Key" : "Name",
+                        "Value" : "ext-participant-svc-grp"
+                    }, {
+                        "Key" : "Cloudformation",
+                        "Value" : "Yes"
+                    }
+                ],
+                "Targets" : [ {
+                    "Id" : { 
+                        "Fn::ImportValue" :  {
+                            "Fn::Sub": "ParticipantSvcInstanceIdZone1" 
+                        } 
+                    },
+                    "Port" : 8080
+                } ],
+                "TargetType" : "instance",
+                "UnhealthyThresholdCount" : 2,
+                "VpcId" : { 
+                    "Fn::ImportValue" :  {
+                        "Fn::Sub": "FinexVpcId" 
+                    } 
+                }
+            }
+        },
+        "ExtOrderSvcTargetGrp" : {
+            "Type" : "AWS::ElasticLoadBalancingV2::TargetGroup",
+            "Properties" : {
+                "HealthCheckEnabled" : true,
+                "HealthCheckIntervalSeconds" : 30,
+                "HealthCheckPath" : "/index.html",
+                "HealthCheckPort" : "8080",
+                "HealthCheckProtocol" : "HTTP",
+                "HealthCheckTimeoutSeconds" : 5,
+                "HealthyThresholdCount" : 5,
+                "Matcher" : {
+                    "HttpCode" : "200"
+                },
+                "Name" : "ext-order-svc-grp",
+                "Port" : 8080,
+                "Protocol" : "HTTP",
+                "Tags" : [
+                    {
+                        "Key" : "Name",
+                        "Value" : "ext-order-svc-grp"
+                    }, {
+                        "Key" : "Cloudformation",
+                        "Value" : "Yes"
+                    }
+                ],
+                "Targets" : [ {
+                    "Id" : { 
+                        "Fn::ImportValue" :  {
+                            "Fn::Sub": "OrderSvcInstanceIdZone1" 
+                        } 
+                    },
+                    "Port" : 8080
+                } ],
+                "TargetType" : "instance",
+                "UnhealthyThresholdCount" : 2,
+                "VpcId" : { 
+                    "Fn::ImportValue" :  {
+                        "Fn::Sub": "FinexVpcId" 
+                    } 
+                }
+            }
+        },
+        "ExtOrderbookSvcTargetGrp" : {
+            "Type" : "AWS::ElasticLoadBalancingV2::TargetGroup",
+            "Properties" : {
+                "HealthCheckEnabled" : true,
+                "HealthCheckIntervalSeconds" : 30,
+                "HealthCheckPath" : "/index.html",
+                "HealthCheckPort" : "8080",
+                "HealthCheckProtocol" : "HTTP",
+                "HealthCheckTimeoutSeconds" : 5,
+                "HealthyThresholdCount" : 5,
+                "Matcher" : {
+                    "HttpCode" : "200"
+                },
+                "Name" : "ext-orderbook-svc-grp",
+                "Port" : 8080,
+                "Protocol" : "HTTP",
+                "Tags" : [
+                    {
+                        "Key" : "Name",
+                        "Value" : "ext-orderbook-svc-grp"
+                    }, {
+                        "Key" : "Cloudformation",
+                        "Value" : "Yes"
+                    }
+                ],
+                "Targets" : [ {
+                    "Id" : { 
+                        "Fn::ImportValue" :  {
+                            "Fn::Sub": "OrderbookSvcInstanceIdZone1" 
+                        } 
+                    },
+                    "Port" : 8080
+                } ],
+                "TargetType" : "instance",
+                "UnhealthyThresholdCount" : 2,
+                "VpcId" : { 
+                    "Fn::ImportValue" :  {
+                        "Fn::Sub": "FinexVpcId" 
+                    } 
+                }
+            }
+        },
+        "ExtTradeSvcTargetGrp" : {
+            "Type" : "AWS::ElasticLoadBalancingV2::TargetGroup",
+            "Properties" : {
+                "HealthCheckEnabled" : true,
+                "HealthCheckIntervalSeconds" : 30,
+                "HealthCheckPath" : "/index.html",
+                "HealthCheckPort" : "8080",
+                "HealthCheckProtocol" : "HTTP",
+                "HealthCheckTimeoutSeconds" : 5,
+                "HealthyThresholdCount" : 5,
+                "Matcher" : {
+                    "HttpCode" : "200"
+                },
+                "Name" : "ext-trade-svc-grp",
+                "Port" : 8080,
+                "Protocol" : "HTTP",
+                "Tags" : [
+                    {
+                        "Key" : "Name",
+                        "Value" : "ext-trade-svc-grp"
+                    }, {
+                        "Key" : "Cloudformation",
+                        "Value" : "Yes"
+                    }
+                ],
+                "Targets" : [ {
+                    "Id" : { 
+                        "Fn::ImportValue" :  {
+                            "Fn::Sub": "TradeSvcInstanceIdZone1" 
+                        } 
+                    },
+                    "Port" : 8080
+                } ],
+                "TargetType" : "instance",
+                "UnhealthyThresholdCount" : 2,
+                "VpcId" : { 
+                    "Fn::ImportValue" :  {
+                        "Fn::Sub": "FinexVpcId" 
+                    } 
+                }
+            }
+        },
+        "ExternalAlbListener" : {
+            "Type" : "AWS::ElasticLoadBalancingV2::Listener",
+            "Properties" : {
+                "LoadBalancerArn" : { 
+                    "Fn::ImportValue" :  {
+                        "Fn::Sub": "FinexExternalAlbArn" 
+                    } 
+                },
+                "DefaultActions" : [ {
+                    "ForwardConfig" : {
+                        "TargetGroups" : [ {
+                            "TargetGroupArn" : { 
+                                "Ref" : "ExtInfoSvcTargetGrp"  
+                            }
+                        } ]
+                    },
+                    "Order" : 100,
+                    "TargetGroupArn" : {
+                        "Ref" : "ExtInfoSvcTargetGrp"  
+                    },
+                    "Type" : "forward"
+                }],
+                "Port" : 80,
+                "Protocol" : "HTTP"
+            }
+        },
+        "ExternalAlbListnerProductExternalApiRule" : {
+            "Type" : "AWS::ElasticLoadBalancingV2::ListenerRule",
+            "DependsOn" : ["ExtProductSvcTargetGrp", "ExternalAlbListener"],
+            "Properties" : {
+                "Actions" : [ {
+                    "ForwardConfig" : {
+                        "TargetGroups" : [ {
+                            "TargetGroupArn" : { 
+                                "Ref" : "ExtProductSvcTargetGrp"  
+                            }
+                        } ]
+                    },
+                    "Type" : "forward"
+                } ],
+                "Conditions" : [ {
+                    "Field" : "path-pattern",
+                    "PathPatternConfig" : {
+                        "Values" : [
+                            "/finex/api/product/*"
+                        ]
+                    }
+                } ],
+                "ListenerArn" : {
+                    "Ref" : "ExternalAlbListener"
+                },
+                "Priority" : 1
+            }
+        },
+        "ExternalAlbListnerParticipantExternalApiRule" : {
+            "Type" : "AWS::ElasticLoadBalancingV2::ListenerRule",
+            "DependsOn" : ["ExtParticipantSvcTargetGrp", "ExternalAlbListener"],
+            "Properties" : {
+                "Actions" : [ {
+                    "ForwardConfig" : {
+                        "TargetGroups" : [ {
+                            "TargetGroupArn" : { 
+                                "Ref" : "ExtParticipantSvcTargetGrp"  
+                            }
+                        } ]
+                    },
+                    "Type" : "forward"
+                }],
+                "Conditions" : [ {
+                    "Field" : "path-pattern",
+                    "PathPatternConfig" : {
+                        "Values" : [
+                            "/finex/api/participant/*"
+                        ]
+                    }
+                } ],
+                "ListenerArn" : {
+                    "Ref" : "ExternalAlbListener"
+                },
+                "Priority" : 3
+            }
+        },
+        "ExternalAlbListnerOrderExternalApiRule" : {
+            "Type" : "AWS::ElasticLoadBalancingV2::ListenerRule",
+            "DependsOn" : ["ExtOrderSvcTargetGrp", "ExternalAlbListener"],
+            "Properties" : {
+                "Actions" : [ {
+                    "ForwardConfig" : {
+                        "TargetGroups" : [ {
+                            "TargetGroupArn" : { 
+                                "Ref" : "ExtOrderSvcTargetGrp"  
+                            }
+                        } ]
+                    },
+                    "Type" : "forward"
+                }],
+                "Conditions" : [ {
+                    "Field" : "path-pattern",
+                    "PathPatternConfig" : {
+                        "Values" : [
+                            "/finex/api/order/*"
+                        ]
+                    }
+                } ],
+                "ListenerArn" : {
+                    "Ref" : "ExternalAlbListener"
+                },
+                "Priority" : 5
+            }
+        },
+        "ExternalAlbListnerTradeExternalApiRule" : {
+            "Type" : "AWS::ElasticLoadBalancingV2::ListenerRule",
+            "DependsOn" : ["ExtTradeSvcTargetGrp", "ExternalAlbListener"],
+            "Properties" : {
+                "Actions" : [ {
+                    "ForwardConfig" : {
+                        "TargetGroups" : [ {
+                            "TargetGroupArn" : { 
+                                "Ref" : "ExtTradeSvcTargetGrp"  
+                            }
+                        } ]
+                    },
+                    "Type" : "forward"
+                }],
+                "Conditions" : [ {
+                    "Field" : "path-pattern",
+                    "PathPatternConfig" : {
+                        "Values" : [
+                            "/finex/api/trade/*"
+                        ]
+                    }
+                } ],
+                "ListenerArn" : {
+                    "Ref" : "ExternalAlbListener"
+                },
+                "Priority" : 9
+            }
+        }
+    }
+}

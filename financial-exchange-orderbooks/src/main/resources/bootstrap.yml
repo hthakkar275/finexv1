@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: finex-orderbook
+  profiles:
+    active: ${spring_profiles}
+  cloud:
+    config:
+      uri: ${config_server_uri}
+      label: master
+      
