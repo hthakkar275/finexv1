@@ -12,7 +12,7 @@ The application services and configuration service are dockerized. Each docker i
 
 The diagram below gives a complete picture of all that is involved in this repo.
 
-![Finex Complete Picture](https://github.com/hthakkar275/finex/blob/ht-0402/financial-exchange-docs/finex-complete-picture.png "Complete Picture")
+![Finex Complete Picture](https://github.com/hthakkar275/finexv1/blob/master/financial-exchange-docs/finex-complete-picture.png "Complete Picture")
 
 Now that the system is described at a high-level, please refer to the subsequent sections for details information.
 
@@ -23,6 +23,69 @@ The financial exchange employs a microservices architecture with independent ser
 1. Application Services
 2. Configuration Sesrvice
 3. Info Service
+
+![Finex Complete Picture](https://github.com/hthakkar275/finexv1/blob/master/financial-exchange-docs/ApplicaitonServicesView.png "Complete Picture")
+
+Each service is a Java Spring Boot application. The table below identifies the location of the source code for each service within this repository.
+
+| Service               | Repository Location                                                 |
+| --------------------- | ------------------------------------------------------------------- |
+| Info Service          | [financial-exchange-info](financial-exchange-info)                  |
+| Config Service        | [financial-exchange-config](financial-exchange-config)              |
+| Product Service       | [financial-exchange-product](financial-exchange-product)            |
+| Participant Service   | [financial-exchange-participant](financial-exchange-participant)    |
+| Order Service         | [financial-exchange-order](financial-exchange-order)                |
+| Orderbook Service     | [financial-exchange-orderbook](financial-exchange-orderbook)        |
+| Trade Service         | [financial-exchange-trade](financial-exchange-trade)                |
+
+### Configuration Service
+
+Configuration Service (CS) is not only a Java Spring Boot application, but also a Spring Cloud Confug Server. It contains no dedicated application code. Instead it relies entirely on the the out-of-the-box Spring Cloud Config Server impelementation. It uses a git repository as the source of configuration files to serve to the Application Services (AS). The git repository information such as git URI and git credentials are supplied to the docker build process for the CS. As such the git configuration repository details are pre-packaged into the docker image and ready to run when docker image is run in a docker container. The excerpt from the [Configuration Service Dockerfile](financial-exchange-config/dockerfile.configserver) show how the git details are passed into the docker build which are then exported as environment variable in the docker image.
+
+```Dockerfile
+ARG GIT_URI_ARG
+ARG GIT_USER_ARG
+ARG GIT_PASSWORD_ARG
+
+ENV GIT_URI $GIT_URI_ARG
+ENV GIT_USER $GIT_USER_ARG
+ENV GIT_PASSWORD $GIT_PASSWORD_ARG
+```
+
+Then the docker build command is issued as follows to "bake" the git repo detais into the docker image.
+
+```bash
+# Supply appropriate --build-arg values for the 
+# GIT_URI_ARG, GIT_USER_ARG, and GIT_PASSWORD_ARG
+
+docker build -f dockerfile.configserver \
+--build-arg GIT_URI_ARG=https://github.com/githubUser/configuraiton.git \
+--build-arg GIT_USER_ARG=githubUser \
+--build-arg GIT_PASSWORD=password \
+-t dockerUser/finex-config-user .
+```
+
+Thea Spring Boot application.yml references the environemnt variables for git repository details.  
+
+```yaml
+spring:
+  application:
+    name: finex-config
+  cloud:
+    config:
+      server:
+        git:
+          uri: ${git_uri}
+          force-pull: true
+          username: ${git_user}
+          password: ${git_password}
+server:
+  port: 8888
+```
+
+### Application Services
+
+The Application Services implement the business logic of the financial exchange system. Application Services depend on persistence of multiple domain object types.
 
 
 
