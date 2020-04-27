@@ -24,7 +24,7 @@ The financial exchange employs a microservices architecture with independent ser
 2. Configuration Sesrvice
 3. Info Service
 
-![Finex Complete Picture](https://github.com/hthakkar275/finexv1/blob/master/financial-exchange-docs/ApplicaitonServicesView.png "Complete Picture")
+![Application Services](https://github.com/hthakkar275/finexv1/blob/master/financial-exchange-docs/ApplicaitonServicesView.png "Application Services")
 
 Each service is a Java Spring Boot application. The table below identifies the location of the source code for each service within this repository.
 
@@ -85,7 +85,224 @@ server:
 
 ### Application Services
 
-The Application Services implement the business logic of the financial exchange system. Application Services depend on persistence of multiple domain object types.
+The Application Services implement the business logic of the financial exchange system. Each Applicaiton Service is a Spring Boot application. Application Services depend on persistence of multiple domain object types.
 
+* Equity (i.e. Product)
+* Broker (i.e. Participant)
+* Orders
+* Trade
 
+Market participants (i.e. Brokers) place a buy and sell Orders on a variety of products (i.e. Equity). The orders are matched by in an orderbook which impplements price-time-priority algorithm. Matched orders are represented in trades.
+
+All capabilities are supporeted via API offered by all services. The Application Services provide an internal API an an external API. The internal API follows the path pattern `/finex/internal/`, and it is intended for use by inter-service communication and for internal users to manage activities such as product and participant create, delete and updates. The external API follows the path pattern `/finex/external/`, and it is intended to be available to external users.
+
+The Application Services are self-explanator from the name itself, but the list below gives a brief overview of each service.
+
+#### Product Service
+
+* Provides operations to manage financial instrument products data. Currently only supported product is Equity.
+* Create, update and delete operations are avilable via the internal API.
+* Retrieve operation is available via internal and external API.
+
+#### Participant Service
+
+* Provides operations to manage market participants data. Currently only supported participant is Broker.
+* Create, update and delete operations are avilable via the internal API.
+* Retrieve operation is available via internal and external API.
+
+#### Order Service
+
+* Provides order management operations.
+* Add new order, update or cancel existing orders, or get order status via external API.
+* Orderbook Service updates the order state (i.e. booked, filled) via internal API 
+
+#### Orderbook Service
+
+* Price-time-priority orderbook for each product
+* Order Service uses internal API to apply new and updated orders to the orderbook via internal API
+* Does not offer external API
+
+#### Trade Service
+
+* Provides operations to manage trades in the database.
+* Orderbook Services adds new trades via internal API
+* External users can query trade details via external API
+
+Each service employs nearly identical structual architectural pattern with differences being in the business logic or business domain objects.
+
+![Application Services Architecture](https://github.com/hthakkar275/finexv1/blob/master/financial-exchange-docs/IndividualApplicationSerivceStructure.png "Application Services Architecture")
+
+Each Application Service has a `bootstrap.yml` that configures it with the Spring profile and the URI for the Configuration Service. Both values are taken direclty from enviroment variables "baked-in" to the docker image during docker build. The active profile and Configuration Service URI are used during application startup to retrieve the full configuration for the application. Below is an example of a `bootstrap.yml` file in Order Service.
+
+```yaml
+spring:
+  application:
+    name: fienx-order
+  profiles:
+    active: ${spring_profiles}
+  cloud:
+    config:
+      uri: ${config_server_uri}
+      label: master
+```
+
+### PostgreSQL Database
+
+There is a single database instance and single database schema for all services. Ideal microservices architecture should employ a dedicated database schema, but the simplicty of the data model and its inherent clean boundaries makes having separate schemas unwarranted. That said, it is just as easy to create separate schema without much departure from the overall architecture of the system. The [finexschema.sql](financial-exchange-env/finexschema.sql) contains the DDL for the data model shown below.
+
+![Data Model](https://github.com/hthakkar275/finexv1/blob/master/financial-exchange-docs/DataModel.png "Data Model")
+
+### Load Balancers
+
+The architecture employs use of two AWS Application Load Balancers. 
+
+* Internal load balancer for internal API via path pattern `/finex/internal/api`
+* Internet-facing load balancer for external API via path pattern `/finex/api`
+
+Actually the internal load balancer is configured to route both internal and external API, however the external API exposed through the internal load balancer is not visible to the public. The external API available in the internal load balancer for internal organization users to avoid having to route the calls through the DNS. The primary objective of the internal load balancer, however, is to make support inter-service communication. The Application Service instances and the internal load balancer together form a service mesh.
+
+The internet-facing load balancer is configure to route only externa API traffic adhereing to the path pattern `finex/api`. External users API traffic is routed through the internet-facing load balancer via Route 53 DNS.
+
+Although the internal and internet-facing load balancers described here are provisioned and tested on AWS platform, the same could be implemented on any cloud or on-prem configuration.
+
+## Deployment
+
+The system deployment has been tested on two deployment configurations.
+
+* localhost
+* AWS
+
+### Localhost Deployment
+
+The primary objective of the localhost deployment is for rapid unit test of the business logic of the system. It involves running all Application Services, Configuration Service, and the PostgreSQL database on a single machine. Every service and the PostgreSQL database was run as a docker container. Since all services are running on the same machine, each service has to expose its API on different TCP port. Obviously there are no load balancers deployed in the localhost configuration.
+
+Note that there is no need for code change in any of the services. Simply deploy the applications with `localhost` profile as the active Spring profile and make corresponding Spring confiugraiton files available in the git configuration repository. For example by having the spring profile set to `localhost` on `finex-product` service, the `finex-product` service will request its properties file titled `finex-product-localhost.yml` from the Configuration Service. The `finex-product-localhost.yml` should have the appropriate server listen port as well as database URI. 
+
+### AWS Deployment
+
+Similar to the `localhost` configuration the application properties for each service is configured with the combination of spring profile named `aws` and the matching `finex-xxxxx-aws.yml` in the configuraiton git repository where `xxxxx` is the service name.
+
+The AWS deployment architecture is shown in the figure below. Each Application Service and Configuration Service run in a dedicated t2.micro EC2 instance. 
+
+![AWS Deployment](https://github.com/hthakkar275/finexv1/blob/master/financial-exchange-docs/finex-aws.png "AWS Deployment")
+
+The [financial-exchange-env](financial-exchange-env) directory contains serveral AWS Cloudformation stack JSON configuration files and shell scripts that stand up the entire deployment from setting up VPC with all the requisite subnets and security groups as well as deploying all services and the load balancers. The figure below shows the relationship between the shell scripts, Cloudformation files, and the maven/docker builds. Note that to minimize cost and to attempt to run in the AWS free tier as much as possible, the EC2 isntances are launced in only one of the two availability zone. Hence the Cloudformation files are shown only for zone1. It's just as easy to replicate the zone2 cloud formation from the zone1 cloudformation files.
+
+![Build & Deployment](https://github.com/hthakkar275/finexv1/blob/master/financial-exchange-docs/finex-aws.png "Build & Deployment")
+
+The build & deployment process is mostly automated except for the manual creation of PostgreSQL RDS in AWS. There are two possible scenarios to use the build & deployment scripts and Cloudformation.
+
+* Fresh Installation 
+* Rebuild & Deploy Services
+
+Either scenario is triggered from the main entry point using the shell script [finex-build-main.sh](financial-exchange-env/finex-build-main.sh). The section below describes the procedure to do the full fresh installation as if this architecture had never been deployed in AWS. The Rebuil & Deploy Services scenario is just a subset of the Fresh Installation Scenario.
+
+### Using the Build Scripts to Deploy Fresh Installation to AWS
+
+There are three steps necessary for full fresh installation. Two of the three steps (which are the most tedious and error-prone) are fully automated with shell script and AWS Cloudformation.
+
+1. Prepare the working space
+2. Automated build of the VPC 
+3. Maunal build of PostgreSQL RDS and creation of `finex` database schema
+4. Create database tables in `finex` schema
+5. Automated build of services. This includes
+   1. Maven build of the java applications
+   2. Docker build and push to dockerhub
+   3. AWS stacks for NAT Gateway, EC2, Load Balancers and DNS
+
+Each of the two automated builds are invoked using the `finex-build-main.sh`. This main script has self-explanatory usage documentation that one can invoke with a `-h` option or simply execute the script without any options. The information in the usage/help document is adequate so it is not repeated here.
+
+#### Prepare Working Space
+
+In order to exeucte the automated build steps, the following prerequisite conditions must be available
+
+1.  Clone this git repository so that all source code and build scripts are available locally. Note that in the future this step could also be automated in the build script, but for now the git clone of this repository is to be manually performed.
+2.  Create a dockerhub account, if you don't already have one. The docker images for the Application Services and Configuration Service will be pushed to this repository.
+3.  Create a git repository for the Applicaiton Services configuration files. Use https://github.com/hthakkar275/finexv1-config as reference. If you create this repository in github, you may want to make it a private repository as it will contain details specific to your own deployment configuration. The Configuration Service docker build will require the details of this git repository as descrdibed above in the Configuration Service section.
+4.  Create an AWS account, if you don't already have one.
+5.  Create an AWS key-pair in the AWS region where you wish to deploy finex.
+
+#### Automated VPC Build
+
+1. Change to directory `financial-exchange-env` in your local git repository where you cloned https://github.com/hthakkar275/finexv1.
+2.  Run the `finex-build-main.sh` as shown below to build out the VPC in your desired AWS region. 
+
+```console
+finex-build-main.sh -b vpc -r <aws region name> -c <absolute path to financial-exchange-env  in your local git clone of https://github.com/hthakkar275/finexv1>
+```
+3. The shell script will take few minutes to build the VPC stack in AWS. You can monitor the output from the `finex-build-main.sh` to track the progress. The progress can also be tracked in the AWS Cloudformation console.
+
+#### Manual PostgreSQL Deployment
+
+Create a new PostgreSQL instance in AWS RDS console. Use the following values. Use defualt values for parameters not listed below.
+
+1. Navigate to the RDS on AWS console. 
+2. Proceed to create a new databace instance with parameters shown below. The parameters below are just a suggestion to keep the RDS usage within the AWS free tier. The names of VPC and Security Group are those that were created in the Automated VPC Build step.
+
+| Parameter                             | Value                                               |
+| ------------------------------------- | --------------------------------------------------- |
+| Create Database                       | Standard Create                                     |
+| Engine Option                         | Choose latest stable release of PostgreSQL          |
+| Templates                             | Free Tier                                           |
+| DB Instance Identifier                | finex-database                                      |
+| Credentials                           | Choose appropriate username and password            |
+| DB Instance Size                      | db.t2.micro                                         |
+| Storage Type                          | General Purpose SSD                                 |
+| Allocated Storage                     | 20 GiB                                              |
+| Enable storage autoscaling            | Disabled                                            |
+| Connectivity                          | FinexVpc                                            |
+| Publicly accessible                   | No                                                  |
+| VPC Security Groups                   | Remove the Default security. Add FinexDbSg, FinexAppSg, FinexPubSg          |
+| Availability Zone                     | Choose zone A                                       |
+| Iniital database name                 | finex                                               |
+| Automatic backup                      | Disable                                             |
+| Performance insights                  | Disable                                             |
+| Enhanced Monitoring                   | Disable                                             |
+| Log Exports                           | Disable                                             |
+| Auto minor versiong upgrade           | Disable                                             |
+| Maintenance window                    | Select date and time appropriate for you            |
+| Delete protection                     | Disable                                             |
+
+3. Once the database is available, create the database tables to support the finex data model as shown in the next section
+4. Record the database address which will have the form `finex-database.xxxxxxxxx.us-east-2.rds.amazonaws.com/finex`. This will need to be added to the database configuration parameter in the application yaml files in the configuration repsitory. Example shown below
+
+```yaml
+spring: 
+  application:
+    name: finex-order
+  datasource:
+    url: jdbc:postgresql://finex-database.xxxxxxxxx.us-east-2.rds.amazonaws.com/finex
+    username: myuser
+    password: mypassword
+```
+
+#### DDL for `finex` Schema 
+
+1. Launch an Amazon Linux AMI EC2 instance in FinexPubSunbetZone1 with security group FinexPubSg. Note that the names FinexPubSubnetZone1 and FinexPubSg are the names of the public subnet and seucrity group, respectively, created in the VPC build step. Supply the following UserData when launching the EC2 instance to install a postgreSQL client. This EC2 instance will also serve as a DMZ zone to alow you to SSH and troubleshoot areas that are not visible to public Internet such as the EC2 instances deployed in the private subnets.
+
+```bash
+yum update -y
+yum install gcc -y
+yum install python-pip -y
+yum install postgresql-devel python-devel -y
+pip install pgcli==2.2.0
+```
+2. SSH into the EC2 instance once it is available.
+3. SFTP the [finexschema.sql](financial-exchange-env/finexschema.sql) to EC2
+4. Connect to the finex schema in the PostgreSQL database created in the previous step. Example shown below. Get the PostgreSQL URL from the AWS RDS console.
+
+```bash
+pgcli postgres://username:password@finex-database.xxxxxxxxx.us-east-2.rds.amazonaws.com/finex
+```
+5. Load the `finexschema.sql` file into pgcli which will automatically run all DDL commands.
+
+#### Automated Services Build
+
+1. Change to directory `financial-exchange-env` in your local git repository where you cloned https://github.com/hthakkar275/finexv1.
+2.  Run the `finex-build-main.sh` as shown below to build out the VPC in your desired AWS region. Note that the `-d` and `-f` are optional. These two optional argument allow you to create a DNS record in AWS Route 53 for your publicly registered domain to the external API available via the internet-facing load balancer. If you don't have a publicly registered domain name or do not wish to create a public DNS record, you may omit the `-d` and `-f` options.
+
+```console
+finex-build-main.sh -b services -r <aws region name> -c <absolute path to financial-exchange-env in your local git clone of https://github.com/hthakkar275/finexv1> -s <absolute path to parent directory of your local git repository> -g <URI of the configuration git repository> -u <git username of configuration git repository> -p <git password of configuraiton git repository> -k <AWS key-pair name> -i <dockerhub username> -d <route 53 hosted zone id> -f <publicly registerd url>
+```
+3. The shell script will take upwards of 30 to 45 minutes to peform all maven builds, docker builds, docker push and create AWS infrastructure. You can monitor the output from the `finex-build-main.sh` to track the progress. The progress can also be tracked in the AWS Cloudformation console.
 
