@@ -188,7 +188,7 @@ The AWS deployment architecture is shown in the figure below. Each Application S
 
 The [financial-exchange-env](financial-exchange-env) directory contains several AWS Cloudformation stack JSON configuration files and shell scripts that stand up the entire deployment from setting up VPC with all the requisite subnets and security groups as well as deploying all services and the load balancers. The figure below shows the relationship between the shell scripts, Cloudformation files, and the maven/docker builds. Note that to minimize cost and to attempt to run in the AWS free tier as much as possible, the EC2 instances are launced in only one of the two availability zone. Hence the Cloudformation files are shown only for zone1. It's just as easy to replicate the zone2 cloud formation from the zone1 Cloudformation files.
 
-![Build & Deployment](https://github.com/hthakkar275/finexv1/blob/master/financial-exchange-docs/finex-aws.png "Build & Deployment")
+![Build & Deployment](https://github.com/hthakkar275/finexv1/blob/master/financial-exchange-docs/BuildAndDeployment.png "Build & Deployment")
 
 The build & deployment process is mostly automated except for the manual creation of PostgreSQL RDS in AWS. There are two possible scenarios to use the build & deployment scripts and Cloudformation.
 
