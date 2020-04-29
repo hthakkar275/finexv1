@@ -218,11 +218,15 @@ Each of the two automated builds are invoked using the `finex-build-main.sh`. Th
 
 In order to execute the automated build steps, the following prerequisite conditions must be available
 
-1.  Clone this git repository so that all source code and build scripts are available locally. Note that in the future this step could also be automated in the build script, but for now the git clone of this repository is to be manually performed.
-2.  Create a Docker Hub account, if you don't already have one. The docker images for the Application Services and Configuration Service will be pushed to this repository.
-3.  Create a git repository for the Application Services configuration files. Use https://github.com/hthakkar275/finexv1-config as reference. If you create this repository in GitHub, you may want to make it a private repository as it will contain details specific to your own deployment configuration. The Configuration Service docker build will require the details of this git repository as described above in the Configuration Service section.
-4.  Create an AWS account, if you don't already have one.
-5.  Create an AWS key-pair in the AWS region where you wish to deploy finex.
+1.  Install git, if not already installed. Refer to https://git-scm.com/book/en/v2/Getting-Started-Installing-Git 
+2.  Install docker, if not already installed. Refer to https://docs.docker.com/get-docker
+3.  Install maven, if not already installed. Refer to https://maven.apache.org/install.html
+4.  Confirm that git, docker, and maven are in the path variables in your environment.
+5.  Clone this git repository so that all source code and build scripts are available locally. Note that in the future this step could also be automated in the build script, but for now the git clone of this repository is to be manually performed.
+6.  Create a Docker Hub account, if you don't already have one. The docker images for the Application Services and Configuration Service will be pushed to this repository.
+7.  Create a git repository for the Application Services configuration files. Use https://github.com/hthakkar275/finexv1-config as reference. If you create this repository in GitHub, you may want to make it a private repository as it will contain details specific to your own deployment configuration. The Configuration Service docker build will require the details of this git repository as described above in the Configuration Service section.
+8.  Create an AWS account, if you don't already have one.
+9.  Create an AWS key-pair in the AWS region where you wish to deploy finex.
 
 #### Automated VPC Build
 
